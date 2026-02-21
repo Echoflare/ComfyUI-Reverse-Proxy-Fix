@@ -5,7 +5,7 @@ from server import PromptServer
 @web.middleware
 async def fix_quote_middleware(request: web.Request, handler):
     parsed = urllib.parse.urlsplit(str(request.url))
-    prefixes = ["/api/userdata/", "/api/browser/"]
+    prefixes = ["/api/userdata/", "/userdata/"]
     for prefix in prefixes:
         if parsed.path.startswith(prefix):
             remaining = urllib.parse.unquote(parsed.path[len(prefix):])
