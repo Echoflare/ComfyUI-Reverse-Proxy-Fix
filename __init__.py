@@ -5,20 +5,21 @@ from server import PromptServer
 @web.middleware
 async def fix_quote_middleware(request: web.Request, handler):
     parsed = urllib.parse.urlsplit(str(request.url))
-    prefix = "/api/userdata/"
-    if parsed.path.startswith(prefix):
-        remaining = urllib.parse.unquote(parsed.path[len(prefix):])
-        try:
-            remaining = remaining.encode("latin-1").decode("utf-8")
-        except Exception:
-            pass
-        remaining = urllib.parse.quote(remaining, safe=":?#[]@!$&'()*+,;=-._~")
-        new_url = urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, prefix + remaining, parsed.query, parsed.fragment))
-        cloned = request.clone(rel_url=new_url)
-        match_info = await request.app.router.resolve(cloned)
-        if match_info.route:
-            cloned._match_info = match_info
-            return await match_info.route.handler(cloned)
+    prefixes = ["/api/userdata/", "/api/browser/"]
+    for prefix in prefixes:
+        if parsed.path.startswith(prefix):
+            remaining = urllib.parse.unquote(parsed.path[len(prefix):])
+            try:
+                remaining = remaining.encode("latin-1").decode("utf-8")
+            except Exception:
+                pass
+            remaining = urllib.parse.quote(remaining, safe=":?#[]@!$&'()*+,;=-._~")
+            new_url = urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, prefix + remaining, parsed.query, parsed.fragment))
+            cloned = request.clone(rel_url=new_url)
+            match_info = await request.app.router.resolve(cloned)
+            if match_info.route:
+                cloned._match_info = match_info
+                return await match_info.route.handler(cloned)
     return await handler(request)
 
 def inject_middleware():
